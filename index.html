@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do you love me?</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
+            height: 100vh;
+            overflow: hidden; /* Prevents scrollbars when button moves */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+
+        /* The main container */
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px 50px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(216, 27, 96, 0.2);
+            position: relative;
+            z-index: 10;
+            max-width: 90%;
+            width: 500px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            color: #d81b60;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.2;
+            transition: color 0.3s ease;
+        }
+
+        p.subtitle {
+            color: #8e24aa;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+            min-height: 30px; /* Prevents jumping */
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            min-height: 150px; /* Space for the runaway button */
+        }
+
+        button {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            outline: none;
+        }
+
+        /* YES Button */
+        #yesBtn {
+            background: linear-gradient(135deg, #ff4081, #d81b60);
+            color: white;
+            font-size: 1.3rem;
+            padding: 15px 40px;
+            box-shadow: 0 10px 20px rgba(216, 27, 96, 0.4);
+            z-index: 2;
+            position: relative;
+        }
+
+        #yesBtn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 15px 25px rgba(216, 27, 96, 0.6);
+        }
+
+        /* NO Button - Starts absolute so it can fly anywhere */
+        #noBtn {
+            background: #eceff1;
+            color: #78909c;
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            position: fixed; /* Fixed to viewport */
+            z-index: 100;
+            /* Custom properties for JS to use */
+            --tx: 50vw;
+            --ty: 50vh;
+            --scale: 1;
+            transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) scale(var(--scale));
+            transition: transform 0.2s ease-out; 
+            top: 0;
+            left: 0;
+        }
+
+        /* Toast message for dodges */
+        .toast {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #8e24aa;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(142, 36, 170, 0.4);
+            z-index: 200;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Success Screen */
+        #successScreen {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #ff4081 0%, #d81b60 100%);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #successScreen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #successScreen h2 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #successScreen p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.5rem;
+            font-weight: 600;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Canvas for confetti */
+        #confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 30px 20px; }
+            #yesBtn { font-size: 1.1rem; padding: 12px 30px; }
+            #noBtn { font-size: 1rem; padding: 10px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti"></canvas>
+
+    <!-- Main Game Container -->
+    <div class="container" id="gameContainer">
+        <h1 id="questionText">Do you love me?</h1>
+        <p class="subtitle" id="subtitle">Be honest... 👀</p>
+        
+        <div class="buttons">
+            <button id="yesBtn">Yes! ❤️</button>
+            <!-- NO button is intentionally outside the flex flow to move freely -->
+        </div>
+
+        <button id="noBtn">No 💔</button>
+
+        <!-- Message popup -->
+        <div class="toast" id="toast">Nope!</div>
+    </div>
+
+    <!-- Success Screen (Hidden initially) -->
+    <div id="successScreen">
+        <h2>I love you too! ❤️</h2>
+        <p>You just made me the happiest person alive.</p>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const subtitle = document.getElementById('subtitle');
+        const questionText = document.getElementById('questionText');
+        const toast = document.getElementById('toast');
+        const successScreen = document.getElementById('successScreen');
+        const gameContainer = document.getElementById('gameContainer');
+
+        let noBtnScale = 1;
+        let yesBtnScale = 1;
+        let noClicks = 0; // Tracks how many times she clicked No
+        let isDodgingActive = false; // Becomes true after first click
+
+        // Position "No" button roughly next to "Yes" initially
+        window.onload = () => {
+            const yesRect = yesBtn.getBoundingClientRect();
+            noBtn.style.setProperty('--tx', `${yesRect.right + 50}px`);
+            noBtn.style.setProperty('--ty', `${yesRect.top + 10}px`);
+        };
+
+        const dodgeMessages = [
+            "Wrong button!",
+            "Are you sure? 🥺",
+            "Try again...",
+            "You can't catch me!",
+            "Are you really trying to click that?",
+            "Think about it!",
+            "My heart is breaking...",
+            "Last chance!",
+            "You know you love me ❤️",
+            "That button is broken.",
+            "Just click Yes already!",
+            "Stop trying! 😂"
+        ];
+
+        function moveButtonFarAway() {
+            // Generate random X and Y anywhere on the screen
+            const padding = 50; // Keep it away from the very edges
+            const randomX = Math.random() * (window.innerWidth - padding * 2) + padding;
+            const randomY = Math.random() * (window.innerHeight - padding * 2) + padding;
+
+            noBtn.style.setProperty('--tx', `${randomX}px`);
+            noBtn.style.setProperty('--ty', `${randomY}px`);
+
+            // Shrink the "No" button
+            noBtnScale = Math.max(0.2, noBtnScale - 0.1);
+            noBtn.style.setProperty('--scale', noBtnScale);
+
+            // Grow the "Yes" button
+            yesBtnScale = Math.min(1.6, yesBtnScale + 0.08);
+            yesBtn.style.transform = `scale(${yesBtnScale}) translateY(-5px)`;
+        }
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1500);
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Clicking "No" the FIRST time
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            if (noClicks === 0) {
+                // First click: repeat the question, don't run yet
+                questionText.innerText = "Are you SURE? Let me ask again...";
+                subtitle.innerText = "Do you love me? 🥺";
+                noBtn.innerText = "I said No...";
+                noClicks++;
+                showToast("Let's try this again...");
+            } else {
+                // Second click: Run away!
+                isDodgingActive = true;
+                moveButtonFarAway();
+                showToast("Okay, that's it! Catch me if you can! 🏃‍♂️💨");
+                
+                // Update subtitle
+                subtitle.innerText = "The 'No' button is now running away. 😌";
+            }
+        });
+
+        // Hovering over "No" (Desktop)
+        noBtn.addEventListener('mouseenter', () => {
+            if (isDodgingActive) {
+                moveButtonFarAway();
+                const msg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)];
+                showToast(msg);
+            }
+        });
+
+        // Touching "No" (Mobile)
+        noBtn.addEventListener('touchstart', (e) => {
+            if (isDodgingActive) {
+                e.preventDefault(); // Stops the tap from registering as a click
+                moveButtonFarAway();
+                const msg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)];
+                showToast(msg);
+            }
+        }, { passive: false });
+
+        // Clicking "Yes"
+        yesBtn.addEventListener('click', () => {
+            // Hide the game container
+            gameContainer.style.transform = "scale(0.8)";
+            gameContainer.style.opacity = "0";
+            
+            // Hide the runaway No button
+            noBtn.style.display = 'none';
+            
+            setTimeout(() => {
+                gameContainer.style.display = "none";
+                successScreen.classList.add('active');
+                startConfetti();
+            }, 300);
+        });
+
+        /* =========================================
+           LIGHTWEIGHT CONFETTI ANIMATION
+           ========================================= */
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 10 + 5;
+                this.speedY = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 2 - 1;
+                this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 4 - 2;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function startConfetti() {
+            particles = [];
+            for (let i = 0; i < 150; i++) {
+                particles.push(new Particle());
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+    </script>
+</body>
+</html>
