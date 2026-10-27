@@ -154,19 +154,34 @@
             opacity: 1;
         }
 
+        /* NEW: GIF Styling */
+        .success-gif {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: scale(0.5);
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s forwards;
+        }
+
         #successScreen h2 {
             color: white;
             font-size: 3rem;
             font-weight: 800;
-            margin-bottom: 20px;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            margin-bottom: 10px;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s forwards;
+            opacity: 0;
+            transform: scale(0.8);
         }
 
         #successScreen p {
             color: rgba(255,255,255,0.9);
             font-size: 1.5rem;
             font-weight: 600;
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
             opacity: 0;
             transform: scale(0.8);
         }
@@ -194,6 +209,9 @@
             .container { padding: 30px 20px; }
             #yesBtn { font-size: 1.1rem; padding: 12px 30px; }
             #noBtn { font-size: 1rem; padding: 10px 20px; }
+            #successScreen h2 { font-size: 2.2rem; }
+            #successScreen p { font-size: 1.2rem; }
+            .success-gif { width: 140px; height: 140px; }
         }
     </style>
 </head>
@@ -220,6 +238,8 @@
 
     <!-- Success Screen (Hidden initially) -->
     <div id="successScreen">
+        <!-- NEW GIF HERE -->
+        <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" alt="Cute love GIF" class="success-gif">
         <h2>I love you too! ❤️</h2>
         <p>You just made me the happiest person alive.</p>
     </div>
