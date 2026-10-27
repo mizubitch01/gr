@@ -17,7 +17,7 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
             height: 100vh;
-            overflow: hidden; /* Prevents scrollbars when button moves */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -53,7 +53,7 @@
             font-size: 1.1rem;
             margin-bottom: 30px;
             font-weight: 600;
-            min-height: 30px; /* Prevents jumping */
+            min-height: 30px;
         }
 
         .buttons {
@@ -62,7 +62,7 @@
             align-items: center;
             gap: 20px;
             position: relative;
-            min-height: 150px; /* Space for the runaway button */
+            min-height: 150px;
         }
 
         button {
@@ -91,16 +91,15 @@
             box-shadow: 0 15px 25px rgba(216, 27, 96, 0.6);
         }
 
-        /* NO Button - Starts absolute so it can fly anywhere */
+        /* NO Button - Fixed so it can fly anywhere */
         #noBtn {
             background: #eceff1;
             color: #78909c;
             font-size: 1.1rem;
             padding: 12px 30px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            position: fixed; /* Fixed to viewport */
+            position: fixed;
             z-index: 100;
-            /* Custom properties for JS to use */
             --tx: 50vw;
             --ty: 50vh;
             --scale: 1;
@@ -135,6 +134,49 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        /* --- Sad Meme Overlay --- */
+        #memeOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        #memeOverlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #memeOverlay img {
+            max-width: 80%;
+            max-height: 50vh;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.7);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #memeOverlay.show img {
+            transform: scale(1);
+        }
+
+        .meme-text {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-top: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            font-style: italic;
+        }
+
         /* Success Screen */
         #successScreen {
             display: none;
@@ -154,7 +196,7 @@
             opacity: 1;
         }
 
-        /* NEW: GIF Styling */
+        /* GIF Styling for Success Screen */
         .success-gif {
             width: 180px;
             height: 180px;
@@ -212,6 +254,7 @@
             #successScreen h2 { font-size: 2.2rem; }
             #successScreen p { font-size: 1.2rem; }
             .success-gif { width: 140px; height: 140px; }
+            .meme-text { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -220,6 +263,13 @@
     <!-- Confetti Canvas -->
     <canvas id="confetti"></canvas>
 
+    <!-- Sad Meme Overlay -->
+    <div id="memeOverlay">
+        <!-- Classic Sad Crying Cat Meme -->
+        <img src="https://media.giphy.com/media/ROF8OQvDmxytW/giphy.gif" alt="Sad Crying Meme">
+        <p class="meme-text">Bakit mo naman pinindot? ARAY KO! 😭</p>
+    </div>
+
     <!-- Main Game Container -->
     <div class="container" id="gameContainer">
         <h1 id="questionText">Do you love me?</h1>
@@ -227,7 +277,6 @@
         
         <div class="buttons">
             <button id="yesBtn">Yes! ❤️</button>
-            <!-- NO button is intentionally outside the flex flow to move freely -->
         </div>
 
         <button id="noBtn">No 💔</button>
@@ -236,9 +285,8 @@
         <div class="toast" id="toast">Nope!</div>
     </div>
 
-    <!-- Success Screen (Hidden initially) -->
+    <!-- Success Screen -->
     <div id="successScreen">
-        <!-- NEW GIF HERE -->
         <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" alt="Cute love GIF" class="success-gif">
         <h2>I love you too! ❤️</h2>
         <p>You just made me the happiest person alive.</p>
@@ -252,11 +300,12 @@
         const toast = document.getElementById('toast');
         const successScreen = document.getElementById('successScreen');
         const gameContainer = document.getElementById('gameContainer');
+        const memeOverlay = document.getElementById('memeOverlay');
 
         let noBtnScale = 1;
         let yesBtnScale = 1;
-        let noClicks = 0; // Tracks how many times she clicked No
-        let isDodgingActive = false; // Becomes true after first click
+        let noClicks = 0;
+        let isDodgingActive = false;
 
         // Position "No" button roughly next to "Yes" initially
         window.onload = () => {
@@ -281,19 +330,16 @@
         ];
 
         function moveButtonFarAway() {
-            // Generate random X and Y anywhere on the screen
-            const padding = 50; // Keep it away from the very edges
+            const padding = 50;
             const randomX = Math.random() * (window.innerWidth - padding * 2) + padding;
             const randomY = Math.random() * (window.innerHeight - padding * 2) + padding;
 
             noBtn.style.setProperty('--tx', `${randomX}px`);
             noBtn.style.setProperty('--ty', `${randomY}px`);
 
-            // Shrink the "No" button
             noBtnScale = Math.max(0.2, noBtnScale - 0.1);
             noBtn.style.setProperty('--scale', noBtnScale);
 
-            // Grow the "Yes" button
             yesBtnScale = Math.min(1.6, yesBtnScale + 0.08);
             yesBtn.style.transform = `scale(${yesBtnScale}) translateY(-5px)`;
         }
@@ -311,7 +357,14 @@
             e.preventDefault();
             
             if (noClicks === 0) {
-                // First click: repeat the question, don't run yet
+                // Show the sad meme!
+                memeOverlay.classList.add('show');
+                
+                // Hide the meme after 2.5 seconds
+                setTimeout(() => {
+                    memeOverlay.classList.remove('show');
+                }, 2500);
+
                 questionText.innerText = "Are you SURE? Let me ask again...";
                 subtitle.innerText = "Do you love me? 🥺";
                 noBtn.innerText = "I said No...";
@@ -322,8 +375,6 @@
                 isDodgingActive = true;
                 moveButtonFarAway();
                 showToast("Okay, that's it! Catch me if you can! 🏃‍♂️💨");
-                
-                // Update subtitle
                 subtitle.innerText = "The 'No' button is now running away. 😌";
             }
         });
@@ -340,7 +391,7 @@
         // Touching "No" (Mobile)
         noBtn.addEventListener('touchstart', (e) => {
             if (isDodgingActive) {
-                e.preventDefault(); // Stops the tap from registering as a click
+                e.preventDefault();
                 moveButtonFarAway();
                 const msg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)];
                 showToast(msg);
@@ -349,11 +400,8 @@
 
         // Clicking "Yes"
         yesBtn.addEventListener('click', () => {
-            // Hide the game container
             gameContainer.style.transform = "scale(0.8)";
             gameContainer.style.opacity = "0";
-            
-            // Hide the runaway No button
             noBtn.style.display = 'none';
             
             setTimeout(() => {
